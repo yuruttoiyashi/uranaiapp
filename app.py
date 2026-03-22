@@ -1,12 +1,18 @@
 import streamlit as st
 from openai import OpenAI
 
+# =========================
+# ページ設定
+# =========================
 st.set_page_config(
     page_title="癒しの占いアプリ",
     page_icon="🔮",
     layout="centered"
 )
 
+# =========================
+# APIキー確認
+# =========================
 if "OPENAI_API_KEY" not in st.secrets:
     st.error("APIキーが設定されていません")
     st.stop()
@@ -14,29 +20,35 @@ if "OPENAI_API_KEY" not in st.secrets:
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 # =========================
-# カスタムCSS
+# カスタムCSS（上欠け対策込み）
 # =========================
 st.markdown("""
 <style>
+
+/* 背景 */
 .stApp {
     background: linear-gradient(180deg, #f8f4ff 0%, #fdfaf6 50%, #f3ecff 100%);
 }
 
+/* 上余白（ここ重要！！） */
 .block-container {
-    padding-top: 1.4rem;
+    padding-top: 3.5rem;
     padding-bottom: 2rem;
     max-width: 820px;
 }
 
+/* タイトル */
 .main-title {
     text-align: center;
-    font-size: 2.5rem;
+    font-size: 2.6rem;
     font-weight: 700;
     color: #5b4b7a;
+    margin-top: 1rem;
     margin-bottom: 0.3rem;
     letter-spacing: 0.03em;
 }
 
+/* サブタイトル */
 .sub-title {
     text-align: center;
     font-size: 1.05rem;
@@ -45,6 +57,16 @@ st.markdown("""
     line-height: 1.8;
 }
 
+/* 見出し */
+.section-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #6b4ca0;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* 結果タイトル */
 .result-title {
     font-size: 1.3rem;
     font-weight: 700;
@@ -52,29 +74,33 @@ st.markdown("""
     margin-bottom: 0.7rem;
 }
 
+/* 履歴タイトル */
 .history-title {
     font-size: 1.2rem;
     font-weight: 700;
     color: #6b4ca0;
-    margin-top: 1.2rem;
+    margin-top: 1.5rem;
     margin-bottom: 0.8rem;
     text-align: center;
 }
 
+/* 入力欄 */
 .stTextInput input,
 .stTextArea textarea,
 .stSelectbox div[data-baseweb="select"] > div {
     border-radius: 16px !important;
     border: 1px solid #d8caee !important;
-    background-color: rgba(255, 255, 255, 0.92) !important;
+    background-color: rgba(255, 255, 255, 0.95) !important;
 }
 
+/* フォーカス */
 .stTextInput input:focus,
 .stTextArea textarea:focus {
     border-color: #b99de8 !important;
     box-shadow: 0 0 0 1px #c7b0ef !important;
 }
 
+/* ボタン */
 .stButton > button {
     background: linear-gradient(90deg, #caa8ff 0%, #f1c6e7 100%);
     color: #4d3d68;
@@ -92,19 +118,23 @@ st.markdown("""
     box-shadow: 0 10px 22px rgba(182, 145, 231, 0.34);
 }
 
+/* expander */
 .streamlit-expanderHeader {
     font-weight: 600;
     color: #5f4f7a;
 }
 
+/* コード表示 */
 .stCodeBlock {
     border-radius: 16px;
 }
 
+/* アラート */
 div[data-testid="stAlert"] {
     border-radius: 16px;
 }
 
+/* 区切り線 */
 hr {
     border: none;
     height: 1px;
@@ -117,11 +147,12 @@ hr {
     margin-top: 2rem;
     margin-bottom: 1.2rem;
 }
+
 </style>
 """, unsafe_allow_html=True)
 
 # =========================
-# セッション状態の初期化
+# セッション状態
 # =========================
 if "history" not in st.session_state:
     st.session_state.history = []
@@ -138,7 +169,7 @@ st.markdown(
 # =========================
 # 入力エリア
 # =========================
-st.markdown("### 🌙 あなたの情報を入力してください")
+st.markdown('<div class="section-title">🌙 あなたの情報を入力してください</div>', unsafe_allow_html=True)
 
 birthday = st.text_input("生年月日", placeholder="例：1986/12/03")
 
@@ -168,81 +199,34 @@ if st.button("鑑定する"):
 「{user_input}」
 
 相談者に寄り添いながら、占い歴15年の実力派占い師として自然で人間らしい言葉で鑑定してください。
-芸能人や経営者も密かに通う人気占い師のような、信頼感のある語り口にしてください。
-恋愛、仕事、人間関係、金運、健康運など幅広く見られる占い師として答えてください。
-
-条件:
-- 最初に相談者の気持ちにやさしく共感する
-- テンプレっぽい古いAI口調は使わない
-- ふわっとしすぎず、具体性を入れる
-- 読みやすく、やわらかい文章にする
-- 最後は前向きになれる言葉で締める
-- 少しスピリチュアルで安心感のある雰囲気にする
-- 日本語で回答する
 """
 
-            try:
-                response = client.chat.completions.create(
-                    model="gpt-4o-mini",
-                    messages=[
-                        {
-                            "role": "system",
-                            "content": (
-                                "あなたは占い歴15年の実力派占い師です。"
-                                "芸能人や経営者も密かに通う人気鑑定士で、"
-                                "恋愛、仕事、人間関係、金運、健康運など幅広く鑑定できます。"
-                                "優しく寄り添いながらも、曖昧な表現は避け、"
-                                "現実的で具体的なアドバイスをしてください。"
-                                "テンプレ的な占い表現や古いAIっぽい言い回しは使わず、"
-                                "自然な会話のような口調で話してください。"
-                                "相談者は少し不安を抱えている女性です。"
-                                "最初に気持ちに共感し、その後に鑑定を行い、"
-                                "最後は前向きになれる言葉で締めてください。"
-                                "文章は読みやすく、やわらかく、でもプロらしい深みを感じる内容にしてください。"
-                                "全体の雰囲気は、癒し・安心感・やさしいスピリチュアルさを大切にしてください。"
-                            )
-                        },
-                        {
-                            "role": "user",
-                            "content": prompt
-                        }
-                    ]
-                )
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": "あなたは占い歴15年の実力派占い師です。優しく寄り添ってください。"},
+                    {"role": "user", "content": prompt}
+                ]
+            )
 
-                result = response.choices[0].message.content
+            result = response.choices[0].message.content
 
-                st.session_state.history.insert(
-                    0,
-                    {
-                        "birthday": birthday,
-                        "category": category,
-                        "question": user_input,
-                        "result": result
-                    }
-                )
+            st.session_state.history.insert(0, result)
 
-                st.markdown("### 🌸 鑑定結果")
-                st.write(result)
-                st.markdown("### 📋 コピー用")
-                st.code(result)
-
-            except Exception as e:
-                st.error("エラーが発生しました。")
-                st.code(str(e))
+            st.markdown("### 🌸 鑑定結果")
+            st.write(result)
+            st.code(result)
 
 # =========================
-# 履歴表示
+# 履歴
 # =========================
 if st.session_state.history:
     st.markdown("---")
-    st.markdown('<div class="history-title">🕊 これまでの鑑定</div>', unsafe_allow_html=True)
+    st.markdown('<div class="history-title">🕊 鑑定履歴</div>', unsafe_allow_html=True)
 
-    for i, item in enumerate(st.session_state.history, start=1):
-        with st.expander(f"{i}. {item['category']}｜{item['birthday']}"):
-            st.write(f"**相談内容**：{item['question']}")
-            st.write("**鑑定結果**：")
-            st.write(item["result"])
-            st.code(item["result"])
+    for i, h in enumerate(st.session_state.history):
+        with st.expander(f"{i+1}件目"):
+            st.write(h)
 
 # =========================
 # 履歴削除
@@ -250,4 +234,4 @@ if st.session_state.history:
 if st.session_state.history:
     if st.button("履歴を手放す"):
         st.session_state.history = []
-        st.success("履歴を削除しました。")
+        st.success("履歴を削除しました")
