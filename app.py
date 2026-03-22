@@ -171,7 +171,7 @@ st.markdown(
 # =========================
 st.markdown('<div class="section-title">🌙 あなたの情報を入力してください</div>', unsafe_allow_html=True)
 
-birthday = st.text_input("生年月日", placeholder="例：1986/12/03")
+birthday = st.text_input("生年月日", placeholder="例：1990/01/01")
 
 category = st.selectbox(
     "占いの種類",
