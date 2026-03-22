@@ -1,30 +1,33 @@
-# =========================
-# ページ設定
-# =========================
+import streamlit as st
+from openai import OpenAI
+
 st.set_page_config(
     page_title="癒しの占いアプリ",
     page_icon="🔮",
     layout="centered"
 )
 
+if "OPENAI_API_KEY" not in st.secrets:
+    st.error("APIキーが設定されていません")
+    st.stop()
+
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
 # =========================
 # カスタムCSS
 # =========================
 st.markdown("""
 <style>
-/* 全体背景 */
 .stApp {
     background: linear-gradient(180deg, #f8f4ff 0%, #fdfaf6 50%, #f3ecff 100%);
 }
 
-/* メイン全体の余白 */
 .block-container {
-    padding-top: 2rem;
+    padding-top: 1.4rem;
     padding-bottom: 2rem;
     max-width: 820px;
 }
 
-/* タイトル */
 .main-title {
     text-align: center;
     font-size: 2.5rem;
@@ -34,35 +37,14 @@ st.markdown("""
     letter-spacing: 0.03em;
 }
 
-/* サブタイトル */
 .sub-title {
     text-align: center;
     font-size: 1.05rem;
     color: #7a6a93;
-    margin-bottom: 2rem;
+    margin-bottom: 1.2rem;
     line-height: 1.8;
 }
 
-/* カード風コンテナ */
-.soft-card {
-    background: rgba(255, 255, 255, 0.72);
-    border: 1px solid rgba(180, 160, 220, 0.35);
-    border-radius: 24px;
-    padding: 1.4rem 1.2rem 1.2rem 1.2rem;
-    box-shadow: 0 8px 24px rgba(125, 103, 168, 0.10);
-    backdrop-filter: blur(6px);
-    margin-bottom: 1.2rem;
-}
-
-/* ラベル風テキスト */
-.section-label {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #6a5a84;
-    margin-bottom: 0.4rem;
-}
-
-/* 結果見出し */
 .result-title {
     font-size: 1.3rem;
     font-weight: 700;
@@ -70,7 +52,6 @@ st.markdown("""
     margin-bottom: 0.7rem;
 }
 
-/* 小見出し */
 .history-title {
     font-size: 1.2rem;
     font-weight: 700;
@@ -80,20 +61,20 @@ st.markdown("""
     text-align: center;
 }
 
-/* 入力欄 */
-.stTextInput input, .stTextArea textarea, .stSelectbox div[data-baseweb="select"] > div {
+.stTextInput input,
+.stTextArea textarea,
+.stSelectbox div[data-baseweb="select"] > div {
     border-radius: 16px !important;
     border: 1px solid #d8caee !important;
     background-color: rgba(255, 255, 255, 0.92) !important;
 }
 
-/* 入力中 */
-.stTextInput input:focus, .stTextArea textarea:focus {
+.stTextInput input:focus,
+.stTextArea textarea:focus {
     border-color: #b99de8 !important;
     box-shadow: 0 0 0 1px #c7b0ef !important;
 }
 
-/* ボタン */
 .stButton > button {
     background: linear-gradient(90deg, #caa8ff 0%, #f1c6e7 100%);
     color: #4d3d68;
@@ -111,38 +92,34 @@ st.markdown("""
     box-shadow: 0 10px 22px rgba(182, 145, 231, 0.34);
 }
 
-/* expander */
 .streamlit-expanderHeader {
     font-weight: 600;
     color: #5f4f7a;
 }
 
-/* コード表示 */
 .stCodeBlock {
     border-radius: 16px;
 }
 
-/* メッセージ系 */
 div[data-testid="stAlert"] {
     border-radius: 16px;
 }
 
-/* 区切り線 */
 hr {
     border: none;
     height: 1px;
-    background: linear-gradient(90deg, rgba(0,0,0,0), rgba(186,160,219,0.8), rgba(0,0,0,0));
+    background: linear-gradient(
+        90deg,
+        rgba(0,0,0,0),
+        rgba(186,160,219,0.8),
+        rgba(0,0,0,0)
+    );
     margin-top: 2rem;
     margin-bottom: 1.2rem;
 }
 </style>
 """, unsafe_allow_html=True)
 
-if "OPENAI_API_KEY" not in st.secrets:
-    st.error("APIキーが設定されていません")
-    st.stop()
-
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 # =========================
 # セッション状態の初期化
 # =========================
@@ -175,6 +152,7 @@ user_input = st.text_area(
     height=150,
     placeholder="例：2026年の全体運をみてください"
 )
+
 # =========================
 # 鑑定ボタン
 # =========================
@@ -243,12 +221,10 @@ if st.button("鑑定する"):
                     }
                 )
 
-                st.markdown('<div class="soft-card">', unsafe_allow_html=True)
-                st.markdown('<div class="result-title">🌸 鑑定結果</div>', unsafe_allow_html=True)
+                st.markdown("### 🌸 鑑定結果")
                 st.write(result)
                 st.markdown("### 📋 コピー用")
                 st.code(result)
-                st.markdown('</div>', unsafe_allow_html=True)
 
             except Exception as e:
                 st.error("エラーが発生しました。")
